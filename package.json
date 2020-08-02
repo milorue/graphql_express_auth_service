@@ -1,0 +1,25 @@
+{
+  "name": "enab_service",
+  "version": "1.0.0",
+  "description": "Backend Node.js Service for EnAb web services",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon --exec node index.js",
+    "start": "node index.js"
+  },
+  "author": "Milo S. Rue",
+  "license": "ISC",
+  "dependencies": {
+    "apollo-server-express": "^2.16.1",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "graphql": "^15.3.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.9.27"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}
