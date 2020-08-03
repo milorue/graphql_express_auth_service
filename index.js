@@ -13,7 +13,7 @@ const {ApolloServer, gql} = require("apollo-server-express")
 
 // hashing & security
 const { hash, genSalt, compare } = require('bcryptjs')
-const {sign} = require("jsonwebtoken")
+const {sign, verify} = require("jsonwebtoken")
 
 // data model
 const UserModel = require('./data_schema/model/user_model')
@@ -32,7 +32,26 @@ async function run(){
         
         const resolvers = {
             Query:{
-                async users(){
+                async users(parent, args, context){
+
+                    const auth = context.req.headers['authorization']
+
+                    if(!auth){
+                        throw new Error("User is not authenticated")
+                    }
+
+                    try{
+                        const token = auth.split(' ')[1]
+                        const payload = verify(token, process.env.ACCESS_TOKEN_SECRET)
+                        context.payload = payload
+                        
+                    }
+                    catch(err){
+                        console.log(err)
+                        throw new Error("User is not authenticated")
+                    }
+
+
                     let result = await UserModel.find((err, users) => {
                         if(err){
                             return new Promise(resolve => {
@@ -45,6 +64,28 @@ async function run(){
                     })
 
                     return result
+                },
+
+                async getUser(parent, args, context){
+                    // pass the token via http header in graphql
+                    const userAuth = context.req.headers["authorization"]
+                    
+                    if(!userAuth){
+                        throw new Error("User is not authenticated")
+                    }
+
+                    try{
+                        const userToken = userAuth.split(" ")[1]
+                        const userPayload = verify(userToken, process.env.ACCESS_TOKEN_SECRET)
+                        context.payload = userPayload
+                        
+                    }
+                    catch(err){
+                        console.log(err)
+                        throw new Error("User is not authenticated")
+                    }
+
+                    return context.payload.userId
                 }
 
             },
@@ -88,7 +129,7 @@ async function run(){
                             let updated_user_l = await user_l.save()
                         }
                         catch{
-                            
+
                         }
 
                         context.res.cookie("id", sign({userId: user_l._id, email: user_l.email, username: user_l.username},
@@ -118,7 +159,7 @@ async function run(){
         }
     
         const apolloServer = new ApolloServer({
-            typeDefs, resolvers, context: ({ req, res }) => ({ req, res })
+            typeDefs, resolvers, context: ({ req, res, payload }) => ({ req, res, payload })
         })
         
     
